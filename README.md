@@ -1,6 +1,6 @@
 # SGLang AWS Kit
 
-SGLang 在 AWS 上的配套工具集，包含 SageMaker Endpoint 部署方案、Prometheus + Grafana 监控栈，以及 Anthropic API 兼容性修复补丁。
+SGLang 在 AWS 上的配套工具集，包含 SageMaker Endpoint 部署方案、Prometheus + Grafana 监控栈、LiteLLM 代理定制 Hook，以及 Anthropic API 兼容性修复补丁。
 
 ## 项目结构
 
@@ -8,6 +8,8 @@ SGLang 在 AWS 上的配套工具集，包含 SageMaker Endpoint 部署方案、
 sglang-aws-kit/
 ├── sagemaker_endpoint_deploy/   # SGLang 部署到 SageMaker Endpoint
 ├── monitoring/                  # Prometheus + Grafana 监控服务
+├── customerize_litellm/         # LiteLLM 代理配置与 Anthropic Schema 修复 Hook
+├── faq/                         # 常见问题解答
 └── sglang_thinking_usage_fix.patch  # Anthropic API 兼容性修复补丁
 ```
 
@@ -55,7 +57,34 @@ docker compose up
 
 详见 [monitoring/README.md](monitoring/README.md)。
 
-### 3. Anthropic API 兼容性修复 (`sglang_thinking_usage_fix.patch`)
+### 3. LiteLLM 代理定制 (`customerize_litellm/`)
+
+通过自定义 LiteLLM Hook，使 LiteLLM 代理中的 SageMaker Endpoint 能够返回符合标准的 Anthropic Message API 响应格式（包括流式 stream chunk）。
+
+**解决的问题：**
+
+SageMaker Endpoint 的响应格式与标准 Anthropic API 不完全兼容，导致 LiteLLM 无法正确解析流式响应。`stream_anthropic_schema_fixer.py` 作为 LiteLLM 的 callback hook，在响应返回前进行格式修正。
+
+**包含文件：**
+- `stream_anthropic_schema_fixer.py`：Anthropic Schema 修复 Hook，注册为 LiteLLM callback
+- `config.yaml`：LiteLLM 代理配置，启用 hook 并配置 SageMaker 模型
+- `docker-compose.yml`：一键启动 LiteLLM 代理（含 PostgreSQL + Prometheus）
+
+**快速开始：**
+```bash
+cd customerize_litellm
+# 配置 config.yaml 中的模型名称和 AWS Region
+# 配置 .env 文件中的 AWS 凭证
+docker compose up
+```
+
+- LiteLLM Proxy: http://localhost:8080
+
+### 4. 常见问题 (`faq/`)
+
+包含在 AWS 环境下使用 SGLang 和 LiteLLM 的常见问题解答，例如如何为 SageMaker Endpoint 启用流式输出。
+
+### 5. Anthropic API 兼容性修复 (`sglang_thinking_usage_fix.patch`)
 
 针对 SGLang Anthropic API 端点的修复补丁，解决以下问题：
 
