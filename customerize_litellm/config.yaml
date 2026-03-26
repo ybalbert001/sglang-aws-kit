@@ -1,0 +1,21 @@
+general_settings:
+  store_model_in_db: true
+  store_prompts_in_spend_logs: true
+  master_key: <master_key>
+
+router_settings:
+  timeout: 180
+  stream_timeout: 1
+
+litellm_settings:
+  callbacks: ["stream_anthropic_schema_fixer.hook"]
+
+model_list:
+  - model_name: sagemaker-qwen3-5-9b
+    litellm_params:
+      model: sagemaker_chat/sglang-Qwen-Qwen3-5-9B-0317-2139
+      aws_region_name: us-east-1
+      timeout: 120
+      max_tokens: 8192
+      drop_params: true
+
