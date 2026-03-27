@@ -20,7 +20,6 @@ services:
     environment:
       DATABASE_URL: "postgresql://llmproxy:dbpassword9090@db:5432/litellm"
       STORE_MODEL_IN_DB: "True" # allows adding models to proxy via UI
-      ENABLE_ANTHROPIC_SCHEMA_FIX: "true" # Enable Anthropic Schema Fixer Hook
       # LITELLM_LOG: "DEBUG" # Uncomment for debug logging
     env_file:
       - .env # Load local .env file

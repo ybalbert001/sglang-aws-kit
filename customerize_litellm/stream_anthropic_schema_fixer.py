@@ -14,7 +14,6 @@ Usage in config.yaml:
 """
 
 import json
-import os
 from typing import Any, AsyncGenerator, Dict, Optional, Tuple
 
 from litellm._logging import verbose_logger
@@ -35,10 +34,7 @@ class AnthropicSchemaFixerHook(CustomLogger):
     def __init__(self):
         super().__init__()
         self.name = "anthropic_schema_fixer"
-        self.enabled = os.getenv("ENABLE_ANTHROPIC_SCHEMA_FIX", "true").lower() == "true"
-        verbose_logger.info(
-            f"AnthropicSchemaFixerHook initialized (enabled={self.enabled})"
-        )
+        verbose_logger.info("AnthropicSchemaFixerHook initialized")
 
     def _parse_sse(self, sse_data: str) -> Tuple[Optional[str], Optional[Dict[str, Any]]]:
         """
@@ -201,13 +197,6 @@ class AnthropicSchemaFixerHook(CustomLogger):
         Yields:
             Modified SSE byte stream with schema fixes applied
         """
-        # Check if hook is enabled
-        if not self.enabled:
-            verbose_logger.debug("AnthropicSchemaFixer: Hook disabled, passing through")
-            async for chunk in response:
-                yield chunk
-            return
-
         # Track usage across the stream for message_stop event
         last_usage: Optional[Dict[str, Any]] = None
         chunk_count = 0
