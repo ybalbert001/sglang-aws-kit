@@ -8,7 +8,10 @@ router_settings:
   stream_timeout: 1
 
 litellm_settings:
-  callbacks: ["stream_anthropic_schema_fixer.hook"]
+  callbacks:
+    - "stream_anthropic_schema_fixer.hook"
+    - "dynamic_tagging_handler.proxy_handler_instance"
+  set_verbose: true  # 开启详细日志以便调试
 
 model_list:
   - model_name: sagemaker-qwen3-5-9b
@@ -19,3 +22,7 @@ model_list:
       max_tokens: 8192
       drop_params: true
 
+  - model_name: bedrock-claude-sonnet46
+    litellm_params:
+      model: bedrock/global.anthropic.claude-sonnet-4-6
+      aws_region_name: us-west-2
