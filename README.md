@@ -59,14 +59,16 @@ docker compose up
 
 ### 3. LiteLLM 代理定制 (`customerize_litellm/`)
 
-通过自定义 LiteLLM Hook，使 LiteLLM 代理中的 SageMaker Endpoint 能够返回符合标准的 Anthropic Message API 响应格式（包括流式 stream chunk）。
+通过自定义 LiteLLM Hook，可以对litellm的request 和 response进行定制性的处理。
 
 **解决的问题：**
 
-SageMaker Endpoint 的响应格式与标准 Anthropic API 不完全兼容，导致 LiteLLM 无法正确解析流式响应。`stream_anthropic_schema_fixer.py` 作为 LiteLLM 的 callback hook，在响应返回前进行格式修正。
+1. SageMaker Endpoint 的响应格式与标准 Anthropic API 不完全兼容，导致 LiteLLM 无法正确解析流式响应。`stream_anthropic_schema_fixer.py` 作为 LiteLLM 的 callback hook，在响应返回前进行格式修正。
+2. 有些任务可以分发到不同的模型来处理，以节约成本。dynamic_tagging_handler.py 构建了一个hook，用于通过message的动态分发任务。代码中的例子是用于区分Claude Code的主线任务和支线任务。
 
 **包含文件：**
 - `stream_anthropic_schema_fixer.py`：Anthropic Schema 修复 Hook，注册为 LiteLLM callback
+- `dynamic_tagging_handler.py`: 区分ClaudeCode的主线任务和支线任务，把支线任务分发给开源模型。
 - `config.yaml`：LiteLLM 代理配置，启用 hook 并配置 SageMaker 模型
 - `docker-compose.yml`：一键启动 LiteLLM 代理（含 PostgreSQL + Prometheus）
 
@@ -79,26 +81,6 @@ docker compose up
 ```
 
 - LiteLLM Proxy: http://localhost:8080
-
-### 4. 常见问题 (`faq/`)
-
-包含在 AWS 环境下使用 SGLang 和 LiteLLM 的常见问题解答，例如如何为 SageMaker Endpoint 启用流式输出。
-
-### 5. Anthropic API 兼容性修复 (`sglang_thinking_usage_fix.patch`)
-
-针对 SGLang Anthropic API 端点的修复补丁，解决以下问题：
-
-- **Thinking Block 缺失**：将 `reasoning_content` 映射为 Anthropic 格式的 `thinking` content block
-- **Usage 信息不完整**：补全流式和非流式响应中的 `cache_read_input_tokens` 字段
-- **字段默认值修正**：`cache_creation_input_tokens` 和 `cache_read_input_tokens` 默认值从 `None` 改为 `0`
-- **Thinking 配置支持**：新增 `AnthropicThinking` 模型，支持 `thinking` 请求参数
-
-**使用方式：**
-```bash
-# 在 SGLang 源码目录下应用补丁
-cd /path/to/sglang
-git apply /path/to/sglang_thinking_usage_fix.patch
-```
 
 ## License
 
