@@ -86,9 +86,10 @@ docker compose up
 
 提供了PD分离多机部署的EKS yaml配置文件。 具体步骤：
 1. 在AMP(Amazon Managed Prometheus) 创建workspace
-2. 执行`kubectl apply -f download-model-daemonset.yaml` 把模型下载到nvme磁盘
-2. 修改sgl059-pd-kimi-k2.5-slgcu13dev-with-monitoring-v4.yaml，配置上AMP endpoint
-3. 执行`kubectl apply -f sgl059-pd-kimi-k2.5-slgcu13dev-with-monitoring-v4.yaml` 启动pd分离的sglang部署
+2. 执行`build-image.sh` 构建Pod中运行sglang所需的Image
+3. 执行`kubectl apply -f download-model-daemonset.yaml` 把模型下载到nvme磁盘
+4. 修改sgl059-pd-kimi-k2.5-slgcu13dev-with-monitoring-v4.yaml，配置上AMP endpoint
+5. 执行`kubectl apply -f sgl059-pd-kimi-k2.5-slgcu13dev-with-monitoring-v4.yaml` 启动pd分离的sglang部署
 
 
 ## License
