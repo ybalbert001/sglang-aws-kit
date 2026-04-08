@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: model-downloader
+  labels:
+    app: model-downloader
+spec:
+  selector:
+    matchLabels:
+      app: model-downloader
+  template:
+    metadata:
+      labels:
+        app: model-downloader
+    spec:
+      nodeSelector:
+        node.kubernetes.io/instance-type: ml.p5en.48xlarge
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: download
+          image: python:3.11-slim
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              pip install -q huggingface_hub &&
+              python3 -c "
+              from huggingface_hub import snapshot_download
+              snapshot_download(
+                  repo_id='Qwen/Qwen3.5-4B',
+                  local_dir='/nvme/Qwen3.5-4B',
+                  local_dir_use_symlinks=False,
+              )
+              print('Download complete!')
+              " &&
+              echo "Model downloaded successfully to /opt/dlami/nvme/Qwen3.5-4B on node $(hostname)" &&
+              sleep infinity
+          volumeMounts:
+            - name: nvme
+              mountPath: /nvme
+          resources:
+            requests:
+              cpu: "1"
+              memory: "4Gi"
+            limits:
+              cpu: "4"
+              memory: "8Gi"
+      volumes:
+        - name: nvme
+          hostPath:
+            path: /opt/dlami/nvme
+            type: DirectoryOrCreate
+      restartPolicy: Always

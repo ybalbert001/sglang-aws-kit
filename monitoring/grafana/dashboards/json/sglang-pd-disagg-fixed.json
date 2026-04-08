@@ -1,0 +1,1441 @@
+{
+  "annotations": {
+    "list": [
+      {
+        "builtIn": 1,
+        "datasource": {
+          "type": "grafana",
+          "uid": "-- Grafana --"
+        },
+        "enable": true,
+        "hide": true,
+        "iconColor": "rgba(0, 211, 255, 1)",
+        "name": "Annotations & Alerts",
+        "type": "dashboard"
+      }
+    ]
+  },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "links": [],
+  "panels": [
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "id": 100,
+      "title": "Queue Depth (队列深度)",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "default": true,
+        "type": "prometheus"
+      },
+      "description": "Prefill 端队列深度：等待 bootstrap 和正在传输 KV 的请求数",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "requests",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 1
+      },
+      "id": 1,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "sglang:num_prefill_prealloc_queue_reqs{instance=~\"$instance\"}",
+          "legendFormat": "{{instance}} - Prealloc Queue (等待 bootstrap)",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "sglang:num_prefill_inflight_queue_reqs{instance=~\"$instance\"}",
+          "legendFormat": "{{instance}} - Inflight Queue (KV 传输中)",
+          "refId": "B"
+        }
+      ],
+      "title": "Prefill Queue Depth",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "default": true,
+        "type": "prometheus"
+      },
+      "description": "Decode 端队列深度：等待预分配和等待 KV 传输的请求数",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "requests",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "decimals": 0,
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "yellow",
+                "value": 50
+              },
+              {
+                "color": "red",
+                "value": 100
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 1
+      },
+      "id": 2,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "sglang:num_decode_prealloc_queue_reqs{instance=~\"$instance\"}",
+          "legendFormat": "{{instance}} - Prealloc Queue (等待预分配)",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "sglang:num_decode_transfer_queue_reqs{instance=~\"$instance\"}",
+          "legendFormat": "{{instance}} - Transfer Queue (等待 KV 传输)",
+          "refId": "B"
+        }
+      ],
+      "title": "Decode Queue Depth",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "default": true,
+        "type": "prometheus"
+      },
+      "description": "Prefill 端等待 bootstrap 的请求数",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "yellow",
+                "value": 20
+              },
+              {
+                "color": "red",
+                "value": 50
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 0,
+        "y": 9
+      },
+      "id": 3,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "sum(sglang:num_prefill_prealloc_queue_reqs{instance=~\"$instance\"})",
+          "legendFormat": "Total",
+          "refId": "A"
+        }
+      ],
+      "title": "Prefill Prealloc Queue",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "default": true,
+        "type": "prometheus"
+      },
+      "description": "Prefill 端正在进行 KV 传输的请求数",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "yellow",
+                "value": 20
+              },
+              {
+                "color": "red",
+                "value": 50
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 6,
+        "y": 9
+      },
+      "id": 4,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "sum(sglang:num_prefill_inflight_queue_reqs{instance=~\"$instance\"})",
+          "legendFormat": "Total",
+          "refId": "A"
+        }
+      ],
+      "title": "Prefill Inflight Queue",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "default": true,
+        "type": "prometheus"
+      },
+      "description": "Decode 端等待预分配的请求数",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "yellow",
+                "value": 20
+              },
+              {
+                "color": "red",
+                "value": 50
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 12,
+        "y": 9
+      },
+      "id": 5,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "sum(sglang:num_decode_prealloc_queue_reqs{instance=~\"$instance\"})",
+          "legendFormat": "Total",
+          "refId": "A"
+        }
+      ],
+      "title": "Decode Prealloc Queue",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "default": true,
+        "type": "prometheus"
+      },
+      "description": "Decode 端等待 KV 传输的请求数",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "yellow",
+                "value": 20
+              },
+              {
+                "color": "red",
+                "value": 50
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 5,
+        "w": 6,
+        "x": 18,
+        "y": 9
+      },
+      "id": 6,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "sum(sglang:num_decode_transfer_queue_reqs{instance=~\"$instance\"})",
+          "legendFormat": "Total",
+          "refId": "A"
+        }
+      ],
+      "title": "Decode Transfer Queue",
+      "type": "stat"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "id": 101,
+      "title": "KV Cache Transfer Performance (KV Cache 传输性能)",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "default": true,
+        "type": "prometheus"
+      },
+      "description": "KV cache 传输速度，基于 histogram 的平均值",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "GB/s",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "GBs"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 15
+      },
+      "id": 10,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "rate(sglang:kv_transfer_speed_gb_s_sum{instance=~\"$instance\"}[$__rate_interval]) / rate(sglang:kv_transfer_speed_gb_s_count{instance=~\"$instance\"}[$__rate_interval])",
+          "legendFormat": "{{instance}} - Avg Speed",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "histogram_quantile(0.50, rate(sglang:kv_transfer_speed_gb_s_bucket{instance=~\"$instance\"}[$__rate_interval]))",
+          "legendFormat": "{{instance}} - P50 Speed",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "histogram_quantile(0.99, rate(sglang:kv_transfer_speed_gb_s_bucket{instance=~\"$instance\"}[$__rate_interval]))",
+          "legendFormat": "{{instance}} - P99 Speed",
+          "refId": "C"
+        }
+      ],
+      "title": "KV Transfer Speed (GB/s)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "default": true,
+        "type": "prometheus"
+      },
+      "description": "KV cache 传输延迟的 P50/P95/P99 分位数",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "ms",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 15
+      },
+      "id": 11,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "histogram_quantile(0.50, rate(sglang:kv_transfer_latency_ms_bucket{instance=~\"$instance\"}[$__rate_interval]))",
+          "legendFormat": "{{instance}} - P50",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "histogram_quantile(0.95, rate(sglang:kv_transfer_latency_ms_bucket{instance=~\"$instance\"}[$__rate_interval]))",
+          "legendFormat": "{{instance}} - P95",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "histogram_quantile(0.99, rate(sglang:kv_transfer_latency_ms_bucket{instance=~\"$instance\"}[$__rate_interval]))",
+          "legendFormat": "{{instance}} - P99",
+          "refId": "C"
+        }
+      ],
+      "title": "KV Transfer Latency (ms)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "default": true,
+        "type": "prometheus"
+      },
+      "description": "Bootstrap 握手耗时的 P50/P95/P99",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "ms",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 23
+      },
+      "id": 12,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "histogram_quantile(0.50, rate(sglang:kv_transfer_bootstrap_ms_bucket{instance=~\"$instance\"}[$__rate_interval]))",
+          "legendFormat": "{{instance}} - P50",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "histogram_quantile(0.95, rate(sglang:kv_transfer_bootstrap_ms_bucket{instance=~\"$instance\"}[$__rate_interval]))",
+          "legendFormat": "{{instance}} - P95",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "histogram_quantile(0.99, rate(sglang:kv_transfer_bootstrap_ms_bucket{instance=~\"$instance\"}[$__rate_interval]))",
+          "legendFormat": "{{instance}} - P99",
+          "refId": "C"
+        }
+      ],
+      "title": "Bootstrap Latency (ms)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "default": true,
+        "type": "prometheus"
+      },
+      "description": "内存分配等待耗时的 P50/P95/P99",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "ms",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 23
+      },
+      "id": 13,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "histogram_quantile(0.50, rate(sglang:kv_transfer_alloc_ms_bucket{instance=~\"$instance\"}[$__rate_interval]))",
+          "legendFormat": "{{instance}} - P50",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "histogram_quantile(0.95, rate(sglang:kv_transfer_alloc_ms_bucket{instance=~\"$instance\"}[$__rate_interval]))",
+          "legendFormat": "{{instance}} - P95",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "histogram_quantile(0.99, rate(sglang:kv_transfer_alloc_ms_bucket{instance=~\"$instance\"}[$__rate_interval]))",
+          "legendFormat": "{{instance}} - P99",
+          "refId": "C"
+        }
+      ],
+      "title": "Memory Alloc Wait (ms)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "default": true,
+        "type": "prometheus"
+      },
+      "description": "单次 KV 传输数据量的 P50/P95/P99",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "MB",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "line",
+            "fillOpacity": 10,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 2,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "auto",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "none"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 80
+              }
+            ]
+          },
+          "unit": "decmbytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 23
+      },
+      "id": 14,
+      "options": {
+        "legend": {
+          "calcs": [
+            "mean",
+            "max",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": false,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "histogram_quantile(0.50, rate(sglang:kv_transfer_total_mb_bucket{instance=~\"$instance\"}[$__rate_interval]))",
+          "legendFormat": "{{instance}} - P50",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "histogram_quantile(0.95, rate(sglang:kv_transfer_total_mb_bucket{instance=~\"$instance\"}[$__rate_interval]))",
+          "legendFormat": "{{instance}} - P95",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "histogram_quantile(0.99, rate(sglang:kv_transfer_total_mb_bucket{instance=~\"$instance\"}[$__rate_interval]))",
+          "legendFormat": "{{instance}} - P99",
+          "refId": "C"
+        }
+      ],
+      "title": "KV Transfer Data Size (MB)",
+      "type": "timeseries"
+    },
+    {
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 31
+      },
+      "id": 102,
+      "title": "Errors & Retries (错误/重试计数)",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "default": true,
+        "type": "prometheus"
+      },
+      "description": "Bootstrap 失败、KV 传输失败、Prefill 重试的速率",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {
+            "axisBorderShow": false,
+            "axisCenteredZero": false,
+            "axisColorMode": "text",
+            "axisLabel": "count/s",
+            "axisPlacement": "auto",
+            "barAlignment": 0,
+            "barWidthFactor": 0.6,
+            "drawStyle": "bars",
+            "fillOpacity": 50,
+            "gradientMode": "none",
+            "hideFrom": {
+              "legend": false,
+              "tooltip": false,
+              "viz": false
+            },
+            "insertNulls": false,
+            "lineInterpolation": "linear",
+            "lineWidth": 1,
+            "pointSize": 5,
+            "scaleDistribution": {
+              "type": "linear"
+            },
+            "showPoints": "never",
+            "spanNulls": false,
+            "stacking": {
+              "group": "A",
+              "mode": "normal"
+            },
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          },
+          "mappings": [],
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "red",
+                "value": 1
+              }
+            ]
+          },
+          "unit": "ops"
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Bootstrap Failed.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "red",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Transfer Failed.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "orange",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".*Prefill Retries.*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "fixedColor": "yellow",
+                  "mode": "fixed"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 16,
+        "x": 0,
+        "y": 32
+      },
+      "id": 20,
+      "options": {
+        "legend": {
+          "calcs": [
+            "sum",
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "hideZeros": true,
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "targets": [
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "rate(sglang:num_bootstrap_failed_reqs_total{instance=~\"$instance\"}[$__rate_interval])",
+          "legendFormat": "{{instance}} - Bootstrap Failed",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "rate(sglang:num_transfer_failed_reqs_total{instance=~\"$instance\"}[$__rate_interval])",
+          "legendFormat": "{{instance}} - Transfer Failed",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "rate(sglang:num_prefill_retries_total{instance=~\"$instance\"}[$__rate_interval])",
+          "legendFormat": "{{instance}} - Prefill Retries",
+          "refId": "C"
+        }
+      ],
+      "title": "Error & Retry Rate",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "default": true,
+        "type": "prometheus"
+      },
+      "description": "累计错误和重试总数",
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green"
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 32
+      },
+      "id": 21,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "auto",
+        "orientation": "vertical",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "sum(sglang:num_bootstrap_failed_reqs_total{instance=~\"$instance\"}) or vector(0)",
+          "legendFormat": "Bootstrap Failed",
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "sum(sglang:num_transfer_failed_reqs_total{instance=~\"$instance\"}) or vector(0)",
+          "legendFormat": "Transfer Failed",
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "default": true,
+            "type": "prometheus"
+          },
+          "expr": "sum(sglang:num_prefill_retries_total{instance=~\"$instance\"}) or vector(0)",
+          "legendFormat": "Prefill Retries",
+          "refId": "C"
+        }
+      ],
+      "title": "Total Error / Retry Counts",
+      "type": "stat"
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": [
+    "sglang",
+    "pd-disaggregation",
+    "kv-cache"
+  ],
+  "templating": {
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": {
+          "default": true,
+          "type": "prometheus"
+        },
+        "definition": "label_values(sglang:num_prefill_prealloc_queue_reqs, instance)",
+        "includeAll": true,
+        "multi": true,
+        "name": "instance",
+        "options": [],
+        "query": {
+          "qryType": 1,
+          "query": "label_values(sglang:num_prefill_prealloc_queue_reqs, instance)"
+        },
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
+      }
+    ]
+  },
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "SGLang PD Disaggregation",
+  "uid": "sglang-pd-disagg"
+}

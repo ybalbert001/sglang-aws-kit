@@ -1,2 +1,5 @@
 .DS_Store
 */.DS_Store
+_cacache/
+_logs/
+_npx
