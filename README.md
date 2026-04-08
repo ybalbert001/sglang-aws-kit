@@ -90,7 +90,7 @@ docker compose up
 3. 执行`kubectl apply -f download-model-daemonset.yaml` 把模型下载到nvme磁盘
 4. 修改sgl059-pd-kimi-k2.5-slgcu13dev-with-monitoring-v4.yaml，配置上AMP endpoint
 5. 执行`kubectl apply -f sgl059-pd-kimi-k2.5-slgcu13dev-with-monitoring-v4.yaml` 启动pd分离的sglang部署
-
+6. 打开AMG(Amazon Managed Grafana)配置上AMP的数据源，导入./monitoring/grafana/dashboards/json/中的dashbroad
 
 ## License
 
