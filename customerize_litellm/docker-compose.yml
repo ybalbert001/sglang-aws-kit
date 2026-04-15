@@ -11,6 +11,7 @@ services:
     volumes:
      - ./config.yaml:/app/config.yaml
      - ./stream_anthropic_schema_fixer.py:/app/stream_anthropic_schema_fixer.py:ro  # Mount Anthropic schema fixer hook
+     - ./ping_keepalive_handler.py:/app/ping_keepalive_handler.py:ro  # Mount ping keepalive handler
      - ./dynamic_tagging_handler.py:/app/dynamic_tagging_handler.py:ro  # Mount dynamic tagging handler
     command:
      - "--config=/app/config.yaml"
