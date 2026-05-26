@@ -1,0 +1,211 @@
+services:
+  sglang-pd:
+    image: lmsysorg/sglang:v0.5.12.post1-cu130
+    container_name: sglang-pd
+    runtime: nvidia
+    ipc: host
+    shm_size: "64g"
+    cap_add:
+      - SYS_NICE
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NIXL_LOG_LEVEL=INFO
+    volumes:
+      - ~/.cache/huggingface:/root/.cache/huggingface
+    network_mode: host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    command:
+      - sh
+      - -c
+      - |
+        set -e
+
+        # ---- 2 decode instances (GPU 6, 7) ----
+        python3 -m sglang.launch_server \
+          --model-path Qwen/Qwen3.5-122B-A10B-FP8 \
+          --host 0.0.0.0 --port 30010 \
+          --tp 1 --dp 1 --base-gpu-id 6 \
+          --attention-backend flashinfer \
+          --disaggregation-mode decode \
+          --disaggregation-transfer-backend nixl \
+          --disaggregation-bootstrap-port 9010 \
+          --mem-fraction-static 0.85 \
+          --reasoning-parser qwen3 --tool-call-parser qwen3_coder \
+          --context-length 32768 \
+          --disable-flashinfer-autotune \
+          --skip-server-warmup \
+          --enable-metrics > /tmp/decode-30010.log 2>&1 &
+
+        python3 -m sglang.launch_server \
+          --model-path Qwen/Qwen3.5-122B-A10B-FP8 \
+          --host 0.0.0.0 --port 30011 \
+          --tp 1 --dp 1 --base-gpu-id 7 \
+          --attention-backend flashinfer \
+          --disaggregation-mode decode \
+          --disaggregation-transfer-backend nixl \
+          --disaggregation-bootstrap-port 9011 \
+          --mem-fraction-static 0.85 \
+          --reasoning-parser qwen3 --tool-call-parser qwen3_coder \
+          --context-length 32768 \
+          --disable-flashinfer-autotune \
+          --skip-server-warmup \
+          --enable-metrics > /tmp/decode-30011.log 2>&1 &
+
+        echo "Waiting for decode instances (timeout 30 min)..."
+        for i in $(seq 1 360); do
+          if curl -sf http://localhost:30010/health > /dev/null 2>&1 && \
+             curl -sf http://localhost:30011/health > /dev/null 2>&1; then
+            echo "Both decode instances ready after ${i}*5s"
+            break
+          fi
+          sleep 5
+        done
+        if ! curl -sf http://localhost:30010/health > /dev/null 2>&1; then
+          echo "ERROR: decode 30010 failed to start"; tail -100 /tmp/decode-30010.log; exit 1
+        fi
+        if ! curl -sf http://localhost:30011/health > /dev/null 2>&1; then
+          echo "ERROR: decode 30011 failed to start"; tail -100 /tmp/decode-30011.log; exit 1
+        fi
+        echo "Decode ready, starting prefill instances..."
+
+        # ---- 6 prefill instances (GPU 0-5) ----
+        python3 -m sglang.launch_server \
+          --model-path Qwen/Qwen3.5-122B-A10B-FP8 \
+          --host 0.0.0.0 --port 30000 \
+          --tp 1 --dp 1 --base-gpu-id 0 \
+          --attention-backend flashinfer \
+          --disaggregation-mode prefill \
+          --disaggregation-transfer-backend nixl \
+          --disaggregation-bootstrap-port 9000 \
+          --mem-fraction-static 0.85 \
+          --reasoning-parser qwen3 --tool-call-parser qwen3_coder \
+          --context-length 32768 \
+          --disable-flashinfer-autotune \
+          --skip-server-warmup \
+          --enable-metrics > /tmp/prefill-30000.log 2>&1 &
+
+        python3 -m sglang.launch_server \
+          --model-path Qwen/Qwen3.5-122B-A10B-FP8 \
+          --host 0.0.0.0 --port 30001 \
+          --tp 1 --dp 1 --base-gpu-id 1 \
+          --attention-backend flashinfer \
+          --disaggregation-mode prefill \
+          --disaggregation-transfer-backend nixl \
+          --disaggregation-bootstrap-port 9001 \
+          --mem-fraction-static 0.85 \
+          --reasoning-parser qwen3 --tool-call-parser qwen3_coder \
+          --context-length 32768 \
+          --disable-flashinfer-autotune \
+          --skip-server-warmup \
+          --enable-metrics > /tmp/prefill-30001.log 2>&1 &
+
+        python3 -m sglang.launch_server \
+          --model-path Qwen/Qwen3.5-122B-A10B-FP8 \
+          --host 0.0.0.0 --port 30002 \
+          --tp 1 --dp 1 --base-gpu-id 2 \
+          --attention-backend flashinfer \
+          --disaggregation-mode prefill \
+          --disaggregation-transfer-backend nixl \
+          --disaggregation-bootstrap-port 9002 \
+          --mem-fraction-static 0.85 \
+          --reasoning-parser qwen3 --tool-call-parser qwen3_coder \
+          --context-length 32768 \
+          --disable-flashinfer-autotune \
+          --skip-server-warmup \
+          --enable-metrics > /tmp/prefill-30002.log 2>&1 &
+
+        python3 -m sglang.launch_server \
+          --model-path Qwen/Qwen3.5-122B-A10B-FP8 \
+          --host 0.0.0.0 --port 30003 \
+          --tp 1 --dp 1 --base-gpu-id 3 \
+          --attention-backend flashinfer \
+          --disaggregation-mode prefill \
+          --disaggregation-transfer-backend nixl \
+          --disaggregation-bootstrap-port 9003 \
+          --mem-fraction-static 0.85 \
+          --reasoning-parser qwen3 --tool-call-parser qwen3_coder \
+          --context-length 32768 \
+          --disable-flashinfer-autotune \
+          --skip-server-warmup \
+          --enable-metrics > /tmp/prefill-30003.log 2>&1 &
+
+        python3 -m sglang.launch_server \
+          --model-path Qwen/Qwen3.5-122B-A10B-FP8 \
+          --host 0.0.0.0 --port 30004 \
+          --tp 1 --dp 1 --base-gpu-id 4 \
+          --attention-backend flashinfer \
+          --disaggregation-mode prefill \
+          --disaggregation-transfer-backend nixl \
+          --disaggregation-bootstrap-port 9004 \
+          --mem-fraction-static 0.85 \
+          --reasoning-parser qwen3 --tool-call-parser qwen3_coder \
+          --context-length 32768 \
+          --disable-flashinfer-autotune \
+          --skip-server-warmup \
+          --enable-metrics > /tmp/prefill-30004.log 2>&1 &
+
+        # GPU 5 prefill runs in foreground (keeps container alive)
+        exec python3 -m sglang.launch_server \
+          --model-path Qwen/Qwen3.5-122B-A10B-FP8 \
+          --host 0.0.0.0 --port 30005 \
+          --tp 1 --dp 1 --base-gpu-id 5 \
+          --attention-backend flashinfer \
+          --disaggregation-mode prefill \
+          --disaggregation-transfer-backend nixl \
+          --disaggregation-bootstrap-port 9005 \
+          --mem-fraction-static 0.85 \
+          --reasoning-parser qwen3 --tool-call-parser qwen3_coder \
+          --context-length 32768 \
+          --disable-flashinfer-autotune \
+          --skip-server-warmup \
+          --enable-metrics
+
+  router:
+    image: lmsysorg/sgl-model-gateway:latest
+    container_name: sglang-router
+    network_mode: host
+    depends_on:
+      sglang-pd:
+        condition: service_started
+    entrypoint:
+      - python3
+      - -m
+      - sglang_router.launch_router
+    command:
+      - --host
+      - "0.0.0.0"
+      - --port
+      - "30080"
+      - --pd-disaggregation
+      - --prefill-policy
+      - round_robin
+      - --decode-policy
+      - round_robin
+      - --prefill
+      - http://127.0.0.1:30000
+      - "9000"
+      - --prefill
+      - http://127.0.0.1:30001
+      - "9001"
+      - --prefill
+      - http://127.0.0.1:30002
+      - "9002"
+      - --prefill
+      - http://127.0.0.1:30003
+      - "9003"
+      - --prefill
+      - http://127.0.0.1:30004
+      - "9004"
+      - --prefill
+      - http://127.0.0.1:30005
+      - "9005"
+      - --decode
+      - http://127.0.0.1:30010
+      - --decode
+      - http://127.0.0.1:30011

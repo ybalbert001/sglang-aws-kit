@@ -1,0 +1,610 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mimo-prefill-headless
+spec:
+  publishNotReadyAddresses: true
+  clusterIP: None
+  selector:
+    app: mimo-prefill
+  ports:
+  - port: 9001
+    name: http
+  - port: 8998
+    name: bootstrap
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mimo-decode-headless
+spec:
+  publishNotReadyAddresses: true
+  clusterIP: None
+  selector:
+    app: mimo-decode
+  ports:
+  - port: 9001
+    name: http
+  - port: 8998
+    name: bootstrap
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sglang-mimo-prefill
+spec:
+  selector:
+    app: mimo-prefill
+  ports:
+  - name: http
+    port: 9001
+    targetPort: 9001
+  - name: bootstrap
+    port: 8998
+    targetPort: 8998
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sglang-mimo-decode
+spec:
+  selector:
+    app: mimo-decode
+  ports:
+  - name: http
+    port: 9001
+    targetPort: 9001
+  - name: bootstrap
+    port: 8998
+    targetPort: 8998
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mimo-prefill
+  labels:
+    app: mimo-prefill
+    role: prefill
+spec:
+  serviceName: mimo-prefill-headless
+  replicas: 1
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app: mimo-prefill
+  template:
+    metadata:
+      labels:
+        app: mimo-prefill
+        role: prefill
+        sglang-metrics: "true"
+      annotations:
+        sglang.ai/bootstrap-port: "8998"
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9001"
+        prometheus.io/path: "/metrics"
+    spec:
+      nodeSelector:
+        node.kubernetes.io/instance-type: ml.p5en.48xlarge
+      containers:
+      - name: sglang
+        image: 687752207838.dkr.ecr.us-east-2.amazonaws.com/sgl-dev-cu13:20260403072950
+        imagePullPolicy: Always
+        securityContext:
+          privileged: true
+        env:
+        - name: NCCL_DEBUG
+          value: INFO
+        - name: FI_PROVIDER
+          value: efa
+        - name: FI_EFA_USE_DEVICE_RDMA
+          value: "1"
+        - name: SGLANG_DISAGGREGATION_NIXL_BACKEND
+          value: LIBFABRIC
+        - name: FI_EFA_ENABLE_SHM_TRANSFER
+          value: "0"
+        - name: FI_LOG_LEVEL
+          value: warn
+        - name: NIXL_LOG_LEVEL
+          value: INFO
+        command:
+        - sh
+        - -c
+        - |
+          python3 -m sglang.launch_server \
+            --model-path /nvme/XiaomiMiMo-MiMo-V2-Flash \
+            --served-model-name XiaomiMiMo-MiMo-V2-Flash \
+            --host 0.0.0.0 \
+            --port 9001 \
+            --tp-size 8 \
+            --pp-size 1 \
+            --enable-dp-attention \
+            --attention-backend fa3 \
+            --disaggregation-mode prefill \
+            --disaggregation-transfer-backend nixl \
+            --disaggregation-bootstrap-port 8998 \
+            --init-expert-location trivial \
+            --ep-num-redundant-experts 0 \
+            --ep-dispatch-algorithm static \
+            --prefill-round-robin-balance \
+            --mem-fraction-static 0.75 \
+            --max-running-requests 128 \
+            --chunked-prefill-size 16384 \
+            --context-length 262144 \
+            --page-size 1 \
+            --trust-remote-code \
+            --watchdog-timeout 1000000 \
+            --decode-log-interval 1 \
+            --enable-cache-report \
+            --collect-tokens-histogram \
+            --model-loader-extra-config '{"enable_multithread_load": "true","num_threads": 64}' \
+            --enable-metrics \
+            --enable-metrics-for-all-schedulers \
+            --bucket-time-to-first-token 0.1 0.2 0.4 0.6 0.8 1 2 4 6 8 10 20 40 60 80 100 200 400 800 1200 1800 2400 3600 5400 7200 \
+            --bucket-e2e-request-latency 0.1 0.2 0.4 0.6 0.8 1 2 4 6 8 10 20 40 60 80 100 200 400 600 1200 1800 2400 3600 5400 7200 \
+            2>&1
+        ports:
+        - containerPort: 9001
+          name: http
+        - containerPort: 8998
+          name: bootstrap
+        volumeMounts:
+        - name: shm
+          mountPath: /dev/shm
+        - name: nvme-storage
+          mountPath: /nvme
+        - name: gdrdrv
+          mountPath: /dev/gdrdrv
+        resources:
+          limits:
+            nvidia.com/gpu: 8
+            vpc.amazonaws.com/efa: 16
+            memory: "1900Gi"
+            cpu: "180"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 9001
+          initialDelaySeconds: 180
+          periodSeconds: 10
+          timeoutSeconds: 5
+      volumes:
+      - name: shm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 64Gi
+      - name: nvme-storage
+        hostPath:
+          path: /opt/dlami/nvme
+          type: Directory
+      - name: gdrdrv
+        hostPath:
+          path: /dev/gdrdrv
+          type: CharDevice
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mimo-decode
+  labels:
+    app: mimo-decode
+    role: decode
+spec:
+  serviceName: mimo-decode-headless
+  replicas: 1
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app: mimo-decode
+  template:
+    metadata:
+      labels:
+        app: mimo-decode
+        role: decode
+        sglang-metrics: "true"
+      annotations:
+        sglang.ai/bootstrap-port: "8998"
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9001"
+        prometheus.io/path: "/metrics"
+    spec:
+      nodeSelector:
+        node.kubernetes.io/instance-type: ml.p5en.48xlarge
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchLabels:
+                app: mimo-prefill
+            topologyKey: kubernetes.io/hostname
+      containers:
+      - name: sglang
+        image: 687752207838.dkr.ecr.us-east-2.amazonaws.com/sgl-dev-cu13:20260403072950
+        imagePullPolicy: Always
+        securityContext:
+          privileged: true
+        env:
+        - name: NCCL_DEBUG
+          value: INFO
+        - name: FI_PROVIDER
+          value: efa
+        - name: FI_EFA_USE_DEVICE_RDMA
+          value: "1"
+        - name: SGLANG_DISAGGREGATION_NIXL_BACKEND
+          value: LIBFABRIC
+        - name: FI_EFA_ENABLE_SHM_TRANSFER
+          value: "0"
+        - name: FI_LOG_LEVEL
+          value: warn
+        - name: NIXL_LOG_LEVEL
+          value: INFO
+        command:
+        - sh
+        - -c
+        - |
+          python3 -m sglang.launch_server \
+            --model-path /nvme/XiaomiMiMo-MiMo-V2-Flash \
+            --served-model-name XiaomiMiMo-MiMo-V2-Flash \
+            --host 0.0.0.0 \
+            --port 9001 \
+            --tp-size 8 \
+            --pp-size 1 \
+            --enable-dp-attention \
+            --attention-backend fa3 \
+            --disaggregation-mode decode \
+            --disaggregation-transfer-backend nixl \
+            --disaggregation-bootstrap-port 8998 \
+            --init-expert-location trivial \
+            --ep-num-redundant-experts 0 \
+            --ep-dispatch-algorithm static \
+            --mem-fraction-static 0.75 \
+            --max-running-requests 128 \
+            --chunked-prefill-size 16384 \
+            --context-length 262144 \
+            --page-size 1 \
+            --trust-remote-code \
+            --watchdog-timeout 1000000 \
+            --decode-log-interval 1 \
+            --enable-cache-report \
+            --collect-tokens-histogram \
+            --model-loader-extra-config '{"enable_multithread_load": "true","num_threads": 64}' \
+            --reasoning-parser qwen3 \
+            --tool-call-parser mimo \
+            --speculative-algorithm EAGLE \
+            --speculative-num-steps 3 \
+            --speculative-eagle-topk 1 \
+            --speculative-num-draft-tokens 4 \
+            --enable-multi-layer-eagle \
+            --enable-metrics \
+            --enable-metrics-for-all-schedulers \
+            --bucket-time-to-first-token 0.1 0.2 0.4 0.6 0.8 1 2 4 6 8 10 20 40 60 80 100 200 400 800 1200 1800 2400 3600 5400 7200 \
+            --bucket-e2e-request-latency 0.1 0.2 0.4 0.6 0.8 1 2 4 6 8 10 20 40 60 80 100 200 400 600 1200 1800 2400 3600 5400 7200 \
+            2>&1
+        ports:
+        - containerPort: 9001
+          name: http
+        - containerPort: 8998
+          name: bootstrap
+        volumeMounts:
+        - name: shm
+          mountPath: /dev/shm
+        - name: nvme-storage
+          mountPath: /nvme
+        - name: gdrdrv
+          mountPath: /dev/gdrdrv
+        resources:
+          limits:
+            nvidia.com/gpu: 8
+            vpc.amazonaws.com/efa: 16
+            memory: "1900Gi"
+            cpu: "180"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 9001
+          initialDelaySeconds: 180
+          periodSeconds: 10
+          timeoutSeconds: 5
+      volumes:
+      - name: shm
+        emptyDir:
+          medium: Memory
+          sizeLimit: 64Gi
+      - name: nvme-storage
+        hostPath:
+          path: /opt/dlami/nvme
+          type: Directory
+      - name: gdrdrv
+        hostPath:
+          path: /dev/gdrdrv
+          type: CharDevice
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: sglang-mimo-router
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: sglang-mimo-router
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: sglang-mimo-router
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: sglang-mimo-router
+subjects:
+- kind: ServiceAccount
+  name: sglang-mimo-router
+  namespace: default
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sglang-mimo-router
+  labels:
+    app: sglang-mimo-router
+spec:
+  selector:
+    matchLabels:
+      app: sglang-mimo-router
+  template:
+    metadata:
+      labels:
+        app: sglang-mimo-router
+    spec:
+      serviceAccountName: sglang-mimo-router
+      containers:
+      - name: router
+        image: lmsysorg/sgl-model-gateway:latest
+        ports:
+        - containerPort: 9001
+          name: http
+        command:
+        - python
+        - -m
+        - sglang_router.launch_router
+        args:
+        - --host
+        - "0.0.0.0"
+        - --port
+        - "9001"
+        - --pd-disaggregation
+        - --prefill
+        - http://sglang-mimo-prefill.default.svc.cluster.local:9001
+        - "8998"
+        - --decode
+        - http://sglang-mimo-decode.default.svc.cluster.local:9001
+        - --prefill-policy
+        - cache_aware
+        - --decode-policy
+        - round_robin
+        resources:
+          requests:
+            cpu: "2"
+            memory: 4Gi
+          limits:
+            cpu: "4"
+            memory: 8Gi
+        readinessProbe:
+          httpGet:
+            path: /readiness
+            port: 9001
+          initialDelaySeconds: 10
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sglang-mimo-router
+spec:
+  selector:
+    app: sglang-mimo-router
+  ports:
+  - name: http
+    port: 9001
+    targetPort: 9001
+  type: ClusterIP
+
+###############################################################################
+#  Prometheus Agent → Amazon Managed Prometheus (AMP)
+#
+#  前置条件 (只需做一次):
+#  1. 确保 EKS 集群已启用 OIDC provider:
+#     eksctl utils associate-iam-oidc-provider --cluster <CLUSTER_NAME> --approve
+#
+#  2. 创建 IAM role (amp-iamproxy-ingest-role) 并绑定到 ServiceAccount:
+#     eksctl create iamserviceaccount \
+#       --name amp-iamproxy-ingest-service-account \
+#       --namespace default \
+#       --cluster <CLUSTER_NAME> \
+#       --attach-policy-arn arn:aws:iam::aws:policy/AmazonPrometheusRemoteWriteAccess \
+#       --approve \
+#       --override-existing-serviceaccounts
+#
+#     或者如果已经手动创建了 amp-iamproxy-ingest-role，
+#     确保它的信任策略(Trust Policy)包含该 EKS 集群的 OIDC provider。
+###############################################################################
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: amp-iamproxy-ingest-service-account
+  annotations:
+    eks.amazonaws.com/role-arn: "arn:aws:iam::687752207838:role/eksctl-eks-cluster-hypd-0402-1ed4-addon-iamse-Role1-IZVJvopAczbj"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus-agent
+rules:
+- apiGroups: [""]
+  resources: ["pods", "nodes", "endpoints", "services"]
+  verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus-agent
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus-agent
+subjects:
+- kind: ServiceAccount
+  name: amp-iamproxy-ingest-service-account
+  namespace: default
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-agent-config
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 5s
+      evaluation_interval: 30s
+
+    scrape_configs:
+      - job_name: sglang
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          # 只抓取带 prometheus.io/scrape=true 的 pod
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: "true"
+          # 只抓取带 sglang-metrics=true label 的 pod
+          - source_labels: [__meta_kubernetes_pod_label_sglang_metrics]
+            action: keep
+            regex: "true"
+          # 使用 annotation 中的 port 构建 scrape 地址
+          - source_labels: [__meta_kubernetes_pod_ip, __meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            target_label: __address__
+            regex: (.+);(.+)
+            replacement: ${1}:${2}
+          # 使用 annotation 中的 metrics path
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+          # 添加有用的 labels
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: node
+          # 保留 role label (prefill/decode)
+          - source_labels: [__meta_kubernetes_pod_label_role]
+            target_label: role
+
+      - job_name: dcgm-exporter
+        scrape_interval: 15s
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          # 只抓取带 dcgm-metrics=true label 的 pod
+          - source_labels: [__meta_kubernetes_pod_label_dcgm_metrics]
+            action: keep
+            regex: "true"
+          # 使用 annotation 中的 port 构建 scrape 地址
+          - source_labels: [__meta_kubernetes_pod_ip, __meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            target_label: __address__
+            regex: (.+);(.+)
+            replacement: ${1}:${2}
+          # 使用 annotation 中的 metrics path
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+          # 添加有用的 labels
+          - source_labels: [__meta_kubernetes_namespace]
+            target_label: namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            target_label: pod
+          - source_labels: [__meta_kubernetes_pod_node_name]
+            target_label: node
+
+    remote_write:
+      - url: https://aps-workspaces.us-east-2.amazonaws.com/workspaces/ws-50321b31-5cc7-4f87-9f81-207b1a025d81/api/v1/remote_write
+        sigv4:
+          region: us-east-2
+        queue_config:
+          max_samples_per_send: 1000
+          max_shards: 200
+          capacity: 2500
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-agent
+  labels:
+    app: prometheus-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus-agent
+  template:
+    metadata:
+      labels:
+        app: prometheus-agent
+    spec:
+      serviceAccountName: amp-iamproxy-ingest-service-account
+      containers:
+      - name: prometheus
+        image: prom/prometheus:latest
+        args:
+          - '--config.file=/etc/prometheus/prometheus.yml'
+          - '--storage.tsdb.path=/prometheus'
+          - '--storage.tsdb.retention.time=2h'
+          - '--enable-feature=agent'
+        ports:
+        - containerPort: 9090
+          name: http
+        volumeMounts:
+        - name: config
+          mountPath: /etc/prometheus
+        - name: data
+          mountPath: /prometheus
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: "1"
+            memory: 1Gi
+      volumes:
+      - name: config
+        configMap:
+          name: prometheus-agent-config
+      - name: data
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-agent
+spec:
+  selector:
+    app: prometheus-agent
+  ports:
+  - name: http
+    port: 9090
+    targetPort: 9090
+  type: ClusterIP
