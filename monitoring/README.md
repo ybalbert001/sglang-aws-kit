@@ -57,15 +57,15 @@ cd awsome-distributed-ai/4.validation_and_observability/4.prometheus-grafana/eks
 
 - AMP & AMG 配置
   - AMG中设置Authentication
-  [](https://github.com/user-attachments/assets/4274f4e4-39f9-45f4-9c7f-cf8ddf09979e)
-  [](https://github.com/user-attachments/assets/57da52da-fcf6-4cba-a496-ed72ff5c3323)
+  ![](https://github.com/user-attachments/assets/4274f4e4-39f9-45f4-9c7f-cf8ddf09979e)
+  ![](https://github.com/user-attachments/assets/57da52da-fcf6-4cba-a496-ed72ff5c3323)
   - AMG中设置Prometheus的数据源
-  [](https://github.com/user-attachments/assets/0ef40c48-84fd-4d2c-b3b5-25301b03698a)
-  [](https://github.com/user-attachments/assets/e13078b3-4473-4f35-9deb-04bd34795891)
+  ![](https://github.com/user-attachments/assets/0ef40c48-84fd-4d2c-b3b5-25301b03698a)
+  ![](https://github.com/user-attachments/assets/e13078b3-4473-4f35-9deb-04bd34795891)
   - AMG中导入Dashboard
-  [](https://github.com/user-attachments/assets/f0165568-1182-47cf-86a4-ecb1b7ce0b68)
-  [](https://github.com/user-attachments/assets/244749d0-0b6f-4d0f-80a1-6861aba7918e)
+  ![](https://github.com/user-attachments/assets/f0165568-1182-47cf-86a4-ecb1b7ce0b68)
+  ![](https://github.com/user-attachments/assets/244749d0-0b6f-4d0f-80a1-6861aba7918e)
 
 DCGM Dashboard参考效果：
-[](https://github.com/user-attachments/assets/d9f9c7cb-89be-4a52-a123-2a6d6516ea23)
+![](https://github.com/user-attachments/assets/d9f9c7cb-89be-4a52-a123-2a6d6516ea23)
 
