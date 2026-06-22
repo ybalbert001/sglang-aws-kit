@@ -34,27 +34,6 @@ sglang-aws-kit/
 
 ### 2. 监控服务 (`monitoring/`)
 
-基于 Docker Compose 的一键监控方案，包含 Prometheus 指标采集和 Grafana 可视化看板。
-
-**包含组件：**
-- **Prometheus**：采集 SGLang 服务器指标（默认抓取 `127.0.0.1:30000`）及 DCGM GPU 指标
-- **Grafana**：预配置数据源和仪表盘，支持匿名访问
-  - SGLang 推理服务监控面板（v1 / v2）
-  - DCGM GPU 监控面板
-
-**快速开始：**
-```bash
-# 1. 启动 SGLang 服务（需开启 metrics）
-python -m sglang.launch_server --model-path <model> --port 30000 --enable-metrics
-
-# 2. 启动监控栈
-cd monitoring
-docker compose up
-```
-
-- Grafana: http://localhost:3000
-- Prometheus: http://localhost:9090
-
 详见 [monitoring/README.md](monitoring/README.md)。
 
 ### 3. LiteLLM 代理定制 (`customerize_litellm/`)
