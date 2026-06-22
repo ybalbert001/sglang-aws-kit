@@ -1,6 +1,6 @@
 ## 可观测说明
 
-### EC2的上搭建可观测
+### EC2上搭建可观测
 
 基于 Docker Compose 的一键监控方案，包含 Prometheus 指标采集和 Grafana 可视化看板。
 
@@ -15,7 +15,7 @@
 # 1. 启动 SGLang 服务（需开启 metrics）
 python -m sglang.launch_server --model-path <model> --port 30000 --enable-metrics
 
-cd ec2
+cd sglang-aws-kit/monitoring/ec2
 docker compose up
 ```
 
